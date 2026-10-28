@@ -26,3 +26,7 @@ Fairshare runs on Firebase's free Spark plan: Cloud Firestore for the shared dat
 4. `npm run deploy` builds the app and publishes the security rules and the site.
 
 Security model: there are no accounts, so the share link is the key. Each house is one document at `houses/{id}` with a 16-character random id; `firestore.rules` allows opening a house by its exact id but never listing houses. "Make a new link" moves the house to a fresh id and locks the old one.
+
+## License
+
+Open source under the [MIT License](LICENSE): use, copy, change and share it freely, keeping the copyright notice.
