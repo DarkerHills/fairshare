@@ -1,0 +1,33 @@
+rules_version = '2';
+
+// Fairshare has no accounts: the share link is the key. Each house lives at houses/{id},
+// where the id is 16 random characters, so it can't be guessed, and houses can't be listed.
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /houses/{houseId} {
+      function longId() {
+        return houseId.size() >= 16 && houseId.size() <= 40;
+      }
+      function isHouse(d) {
+        return d.keys().hasOnly(['version', 'id', 'name', 'note', 'createdAt', 'rev', 'ops', 'members', 'chores', 'occurrences', 'activity'])
+          && d.id == houseId
+          && d.name is string && d.name.size() <= 40
+          && d.note is string && d.note.size() <= 200
+          && d.members is list && d.members.size() <= 24
+          && d.chores is list && d.chores.size() <= 60;
+      }
+      function isMovedNote(d) {
+        return d.keys().hasOnly(['replaced']) && d.replaced == true;
+      }
+
+      allow get: if longId();
+      allow list: if false;
+      allow create: if longId() && isHouse(request.resource.data);
+      // Anyone with the link can edit, until the house moves to a new link
+      allow update: if longId()
+        && !('replaced' in resource.data)
+        && (isHouse(request.resource.data) || isMovedNote(request.resource.data));
+      allow delete: if false;
+    }
+  }
+}
